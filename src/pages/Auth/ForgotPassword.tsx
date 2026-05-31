@@ -20,10 +20,10 @@ export default function ForgotPassword() {
     setIsLoading(true);
 
     try {
-      // إرسال رابط التعيين. قمنا بتضمين رابط موقعك ليعود إليه
+      // إرسال رابط التعيين.
       const actionCodeSettings = {
         url: `${window.location.origin}/reset-password`,
-        handleCodeInApp: false
+        handleCodeInApp: true
       };
       await sendPasswordResetEmail(auth, email, actionCodeSettings);
       setSuccessMsg("تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني بنجاح. يرجى التحقق من صندوق الوارد.");
