@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Shield, Swords, Trophy, Users, Zap, Target, PawPrint, Search, X, Play, ArrowLeft } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Shield, Swords, Trophy, Users, Zap, Target, PawPrint, Search, X, Play, ArrowLeft, Settings, Heart, Clock, LogOut } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { WolfEye, BackgroundTheme } from "../components/BackgroundTheme";
 import { MOVIES_DATA } from "../data/movies";
 import { useAuth } from "../contexts/AuthContext";
@@ -24,6 +24,7 @@ const SeeMoreCard = ({ category }: { category: string }) => {
 const DynamicMovieCard = ({ movie }: { movie: typeof MOVIES_DATA[0] }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [ratio, setRatio] = useState(0.5);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const card = cardRef.current;
@@ -68,6 +69,7 @@ const DynamicMovieCard = ({ movie }: { movie: typeof MOVIES_DATA[0] }) => {
   return (
     <div 
       ref={cardRef} 
+      onClick={() => navigate(`/player/${movie.id}`)}
       className="flex-none w-32 sm:w-40 md:w-48 bg-black/40 border border-[color:var(--dynamic-border)] hover:border-[color:var(--dynamic-border-hover)] backdrop-blur-md rounded-xl overflow-hidden transition-all duration-300 group flex flex-col snap-center sm:snap-start cursor-pointer focus:outline-none select-none [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none]" 
       tabIndex={0}
       onContextMenu={(e) => e.preventDefault()}
@@ -112,7 +114,19 @@ const DynamicMovieCard = ({ movie }: { movie: typeof MOVIES_DATA[0] }) => {
 
 export default function Home() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
   const { currentUser } = useAuth();
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setIsProfileMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <BackgroundTheme>
@@ -149,16 +163,62 @@ export default function Home() {
                     <Search className="w-5 h-5 sm:w-6 sm:h-6" />
                   </button>
                   {currentUser ? (
-                      <div 
-                        title={`تسجيل الخروج (${currentUser.displayName || "مستخدم"})`} 
-                        className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-white/20 overflow-hidden hover:border-orange-400 transition-all cursor-pointer shadow-md" 
-                        onClick={() => auth.signOut()}
-                      >
-                        <img 
-                          src={`https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.displayName || 'User')}&background=0ea5e9&color=fff&bold=true`} 
-                          alt="Profile Icon" 
-                          className="w-full h-full object-cover"
-                        />
+                      <div className="relative" ref={profileMenuRef}>
+                        <div 
+                          title={currentUser.displayName || "مستخدم"} 
+                          className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-white/20 overflow-hidden hover:border-cyan-400 transition-all cursor-pointer shadow-md" 
+                          onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                        >
+                          <img 
+                            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.displayName || 'User')}&background=0ea5e9&color=fff&bold=true`} 
+                            alt="Profile Icon" 
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+
+                        <AnimatePresence>
+                          {isProfileMenuOpen && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                              transition={{ duration: 0.2 }}
+                              className="absolute top-full mt-3 left-0 w-48 sm:w-56 bg-[#0a0a0a] border border-white/10 rounded-2xl shadow-2xl overflow-hidden py-2 z-50 origin-top-left flex flex-col"
+                              dir="rtl"
+                            >
+                              <div className="px-4 py-3 border-b border-white/5 mb-2">
+                                <p className="text-white font-bold text-sm truncate">{currentUser.displayName || "مستخدم"}</p>
+                                <p className="text-gray-400 text-xs truncate">{currentUser.email}</p>
+                              </div>
+                              
+                              <button className="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 transition-colors w-full text-right text-sm sm:text-base">
+                                <Settings className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
+                                <span>الإعدادات</span>
+                              </button>
+                              <button className="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 transition-colors w-full text-right text-sm sm:text-base">
+                                <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />
+                                <span>المفضلة</span>
+                              </button>
+                              <button className="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 transition-colors w-full text-right text-sm sm:text-base mb-2">
+                                <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-500" />
+                                <span>السجل</span>
+                              </button>
+                              
+                              <div className="border-t border-white/5 pt-2">
+                                <button 
+                                  onClick={() => {
+                                    setIsProfileMenuOpen(false);
+                                    auth.signOut();
+                                  }}
+                                  className="flex items-center gap-3 px-4 py-2.5 text-red-500 hover:bg-red-500/10 transition-colors w-full text-right text-sm sm:text-base font-bold"
+                                >
+                                  <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
+                                  <span>تسجيل الخروج</span>
+                                </button>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
                   ) : (
                     <Link to="/login" className="text-xs sm:text-sm font-bold text-white px-4 py-2 sm:px-6 sm:py-2.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all drop-shadow-md">

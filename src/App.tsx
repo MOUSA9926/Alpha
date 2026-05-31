@@ -3,8 +3,7 @@ import Home from "./pages/Home";
 import CategoryView from "./pages/CategoryView/CategoryView";
 import Login from "./pages/Auth/Login";
 import Signup from "./pages/Auth/Signup";
-import ForgotPassword from "./pages/Auth/ForgotPassword";
-import ResetPassword from "./pages/Auth/ResetPassword";
+import Player from "./pages/Player";
 
 export default function App() {
   return (
@@ -12,10 +11,9 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/category/:categorySlug" element={<CategoryView />} />
+        <Route path="/player/:id" element={<Player />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
       </Routes>
     </BrowserRouter>
   );

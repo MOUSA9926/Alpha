@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { ArrowLeft, Search, Filter, Play } from "lucide-react";
 import { BackgroundTheme } from "../../components/BackgroundTheme";
@@ -11,6 +11,7 @@ export default function CategoryView() {
   const { categorySlug } = useParams<{ categorySlug: string }>();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("default");
+  const navigate = useNavigate();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -138,6 +139,7 @@ export default function CategoryView() {
                 {filteredAndSortedMovies.map((movie, idx) => (
                   <motion.div 
                     key={`${movie.title}-${idx}`}
+                    onClick={() => navigate(`/player/${movie.id}`)}
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: idx * 0.05 }}
