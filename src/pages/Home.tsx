@@ -4,10 +4,11 @@ import { Shield, Swords, Trophy, Users, Zap, Target, PawPrint, Search, X, Play, 
 import { Link, useNavigate } from "react-router-dom";
 import { WolfEye, BackgroundTheme } from "../components/BackgroundTheme";
 import { MOVIES_DATA } from "../data/movies";
+import { SERIES_DATA } from "../data/series";
 import { useAuth } from "../contexts/AuthContext";
 import { auth } from "../firebase";
 
-const SeeMoreCard = ({ category }: { category: string }) => {
+const SeeMoreCard = ({ category, type = "movie" }: { category: string, type?: "movie" | "series" }) => {
   return (
     <Link 
       to={`/category/${encodeURIComponent(category)}`}
@@ -21,7 +22,7 @@ const SeeMoreCard = ({ category }: { category: string }) => {
   );
 };
 
-const DynamicMovieCard = ({ movie }: { movie: typeof MOVIES_DATA[0] }) => {
+const DynamicMediaCard = ({ media, type }: { media: any, type: "movie" | "series" }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [ratio, setRatio] = useState(0.5);
   const navigate = useNavigate();
@@ -69,7 +70,7 @@ const DynamicMovieCard = ({ movie }: { movie: typeof MOVIES_DATA[0] }) => {
   return (
     <div 
       ref={cardRef} 
-      onClick={() => navigate(`/player/${movie.id}`)}
+      onClick={() => navigate(`/${type}/${media.id}`)}
       className="flex-none w-32 sm:w-40 md:w-48 bg-black/40 border border-[color:var(--dynamic-border)] hover:border-[color:var(--dynamic-border-hover)] backdrop-blur-md rounded-xl overflow-hidden transition-all duration-300 group flex flex-col snap-center sm:snap-start cursor-pointer focus:outline-none select-none [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none]" 
       tabIndex={0}
       onContextMenu={(e) => e.preventDefault()}
@@ -82,7 +83,7 @@ const DynamicMovieCard = ({ movie }: { movie: typeof MOVIES_DATA[0] }) => {
       } as React.CSSProperties}
     >
       <div className="relative aspect-[2/3] overflow-hidden">
-        <img src={movie.image} alt={movie.title} draggable="false" className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110 group-active:scale-105 group-focus:scale-110 pointer-events-none" />
+        <img src={media.image} alt={media.title} draggable="false" className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110 group-active:scale-105 group-focus:scale-110 pointer-events-none" />
         
         {/* Dynamic Color Sweep Overlay */}
         <div className="absolute inset-0 z-10 pointer-events-none transition-opacity duration-300" style={{ background: 'var(--dynamic-overlay)', mixBlendMode: 'overlay' }} />
@@ -98,12 +99,12 @@ const DynamicMovieCard = ({ movie }: { movie: typeof MOVIES_DATA[0] }) => {
         </div>
 
         <div className="absolute bottom-3 right-3 left-3 z-30 flex flex-col items-start text-right pointer-events-none">
-          <h3 className="text-sm md:text-base font-bold text-white mb-1.5 drop-shadow-md line-clamp-1">{movie.title}</h3>
+          <h3 className="text-sm md:text-base font-bold text-white mb-1.5 drop-shadow-md line-clamp-1">{media.title}</h3>
           <div className="flex items-center justify-between w-full text-xs font-medium">
-            <span className="text-gray-300">{movie.year}</span>
+            <span className="text-gray-300">{media.year}</span>
             <span className="flex items-center gap-0.5 text-[color:var(--dynamic-color)] transition-colors duration-200">
               <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-              {movie.rating}
+              {media.rating}
             </span>
           </div>
         </div>
@@ -116,7 +117,8 @@ export default function Home() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
-  const { currentUser } = useAuth();
+  const { currentUser, userProfile } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -170,7 +172,7 @@ export default function Home() {
                           onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
                         >
                           <img 
-                            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.displayName || 'User')}&background=0ea5e9&color=fff&bold=true`} 
+                            src={userProfile?.photoUrl || currentUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.displayName || 'User')}&background=0ea5e9&color=fff&bold=true`} 
                             alt="Profile Icon" 
                             className="w-full h-full object-cover"
                           />
@@ -191,7 +193,13 @@ export default function Home() {
                                 <p className="text-gray-400 text-xs truncate">{currentUser.email}</p>
                               </div>
                               
-                              <button className="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 transition-colors w-full text-right text-sm sm:text-base">
+                              <button 
+                                onClick={() => {
+                                  setIsProfileMenuOpen(false);
+                                  navigate('/profile');
+                                }}
+                                className="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 transition-colors w-full text-right text-sm sm:text-base"
+                              >
                                 <Settings className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                                 <span>الإعدادات</span>
                               </button>
@@ -383,7 +391,7 @@ export default function Home() {
               } as React.CSSProperties}
             >
               {MOVIES_DATA.filter((m) => m.category === 'أكشن').map((movie, idx) => (
-                <DynamicMovieCard key={idx} movie={movie} />
+                <DynamicMediaCard key={idx} media={movie} type="movie" />
               ))}
               <SeeMoreCard category="أكشن" />
             </div>
@@ -422,7 +430,7 @@ export default function Home() {
               } as React.CSSProperties}
             >
               {MOVIES_DATA.filter((m) => m.category === 'دراما').map((movie, idx) => (
-                <DynamicMovieCard key={idx} movie={movie} />
+                <DynamicMediaCard key={idx} media={movie} type="movie" />
               ))}
               <SeeMoreCard category="دراما" />
             </div>
@@ -461,9 +469,48 @@ export default function Home() {
               } as React.CSSProperties}
             >
               {MOVIES_DATA.filter((m) => m.category === 'رعب').map((movie, idx) => (
-                <DynamicMovieCard key={idx} movie={movie} />
+                <DynamicMediaCard key={idx} media={movie} type="movie" />
               ))}
               <SeeMoreCard category="رعب" />
+            </div>
+          </motion.div>
+
+          {/* Series Grid */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.5 }}
+            className="mt-4 md:mt-2 w-full"
+          >
+            <div 
+              className="flex justify-start mb-4 text-right relative w-full" 
+              dir="rtl"
+              style={{
+                paddingRight: 'var(--edge-padding, max(1.5rem, calc((100vw - 80rem) / 2 + 1.5rem)))',
+                paddingLeft: 'var(--edge-padding, max(1.5rem, calc((100vw - 80rem) / 2 + 1.5rem)))',
+              }}
+            >
+              <div className="relative inline-block">
+                <h3 className="text-xl sm:text-2xl font-black text-white pb-2 px-3">المسلسلات</h3>
+                <div className="absolute bottom-0 right-0 left-0 h-[2px] rounded-full bg-gradient-to-r from-transparent via-white/50 to-transparent shadow-[0_0_8px_rgba(255,255,255,0.3)]"></div>
+              </div>
+            </div>
+            
+            <div 
+              className="flex gap-4 overflow-x-auto pb-6 pt-2 snap-x snap-mandatory scrollbar-hide max-w-[100vw]"
+              dir="rtl"
+              style={{
+                '--edge-padding': 'max(1.5rem, calc((100vw - 80rem) / 2 + 1.5rem))',
+                paddingRight: 'var(--edge-padding)',
+                paddingLeft: 'var(--edge-padding)',
+                scrollPaddingRight: 'var(--edge-padding)',
+                scrollPaddingLeft: 'var(--edge-padding)',
+              } as React.CSSProperties}
+            >
+              {SERIES_DATA.map((series, idx) => (
+                <DynamicMediaCard key={idx} media={series} type="series" />
+              ))}
+              <SeeMoreCard category="المسلسلات" type="series" />
             </div>
           </motion.div>
         </div>

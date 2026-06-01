@@ -4,6 +4,8 @@ import CategoryView from "./pages/CategoryView/CategoryView";
 import Login from "./pages/Auth/Login";
 import Signup from "./pages/Auth/Signup";
 import Player from "./pages/Player";
+import SeriesPlayer from "./pages/SeriesPlayer";
+import Profile from "./pages/Profile/Profile";
 
 export default function App() {
   return (
@@ -12,8 +14,11 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/category/:categorySlug" element={<CategoryView />} />
         <Route path="/player/:id" element={<Player />} />
+        <Route path="/movie/:id" element={<Player />} />
+        <Route path="/series/:id" element={<SeriesPlayer />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/profile" element={<Profile />} />
       </Routes>
     </BrowserRouter>
   );

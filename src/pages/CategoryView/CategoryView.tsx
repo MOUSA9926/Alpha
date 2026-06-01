@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { ArrowLeft, Search, Filter, Play } from "lucide-react";
 import { BackgroundTheme } from "../../components/BackgroundTheme";
 import { MOVIES_DATA } from "../../data/movies";
+import { SERIES_DATA } from "../../data/series";
 
 type SortOption = "default" | "rating-desc" | "rating-asc" | "year-desc" | "year-asc";
 
@@ -19,10 +20,16 @@ export default function CategoryView() {
 
   const decodedCategory = decodeURIComponent(categorySlug || "");
 
+  // Combine movies and series
+  const ALL_MEDIA = useMemo(() => [
+    ...MOVIES_DATA.map(m => ({ ...m, type: "movie" })),
+    ...SERIES_DATA.map(s => ({ ...s, type: "series" }))
+  ], []);
+
   // Filter movies for this category
   const categoryMovies = useMemo(() => {
-    return MOVIES_DATA.filter((movie) => movie.category === decodedCategory);
-  }, [decodedCategory]);
+    return ALL_MEDIA.filter((media) => media.category === decodedCategory);
+  }, [decodedCategory, ALL_MEDIA]);
 
   // Apply search and sort
   const filteredAndSortedMovies = useMemo(() => {
@@ -136,10 +143,10 @@ export default function CategoryView() {
                 exit={{ opacity: 0 }}
                 className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6"
               >
-                {filteredAndSortedMovies.map((movie, idx) => (
+                {filteredAndSortedMovies.map((movie: any, idx) => (
                   <motion.div 
                     key={`${movie.title}-${idx}`}
-                    onClick={() => navigate(`/player/${movie.id}`)}
+                    onClick={() => navigate(`/${movie.type}/${movie.id}`)}
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: idx * 0.05 }}
