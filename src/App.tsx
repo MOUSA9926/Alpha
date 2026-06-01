@@ -6,10 +6,12 @@ import Signup from "./pages/Auth/Signup";
 import Player from "./pages/Player";
 import SeriesPlayer from "./pages/SeriesPlayer";
 import Profile from "./pages/Profile/Profile";
+import ScrollToTop from "./components/ScrollToTop";
 
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/category/:categorySlug" element={<CategoryView />} />
